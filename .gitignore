@@ -1,1 +1,8 @@
 .vscode
+
+*.elf
+*.o
+*.so
+*.out
+client
+server
