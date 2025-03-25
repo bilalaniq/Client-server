@@ -40,11 +40,30 @@ void *manage_client(void *args)
     struct thread_args *args_s = (struct thread_args *)args;
     char buffer[BufferSize];
     ssize_t numBytes;
+    pid_t clientPID;
+
+    numBytes = recv(args_s->clientSocket, buffer, sizeof(buffer) - 1, 0);
+    if (numBytes < 0)
+    {
+        perror("recv() failed");
+        close(args_s->clientSocket);
+        free(args_s);
+
+        pthread_mutex_lock(&client_mutex);
+        active_clients--;
+        pthread_mutex_unlock(&client_mutex);
+
+        return NULL;
+    }
+
+    clientPID = atoi(buffer);
+    buffer[numBytes] = '\0';
+    printf("Client connected with PID: %s\n", buffer);
 
     while ((numBytes = recv(args_s->clientSocket, buffer, sizeof(buffer) - 1, 0)) > 0)
     {
         buffer[numBytes] = '\0';
-        printf("Received from client: %s\n", buffer);
+        printf("Received from client<%d>: %s\n", clientPID, buffer);
         convertToUpper(buffer);
 
         if (send(args_s->clientSocket, buffer, numBytes, 0) < 0)

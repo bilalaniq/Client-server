@@ -22,6 +22,7 @@ int main()
     struct sockaddr_un serverAddr;
     char buffer[BufferSize];
     size_t numByte;
+    pid_t clientPID;
 
     if ((clientsocket = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
@@ -38,6 +39,16 @@ int main()
     if (connect(clientsocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
     {
         DieWithError("connect() failed", clientsocket);
+    }
+
+    clientPID = getpid();
+    printf("Connection request sent with PID: %d\n", clientPID);
+
+    sprintf(buffer, "%d", clientPID);
+
+    if (send(clientsocket, buffer, strlen(buffer), 0) < 0)
+    {
+        DieWithError("send() failed", clientsocket);
     }
 
     while (1)
